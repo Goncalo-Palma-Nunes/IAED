@@ -21,10 +21,20 @@
 #define FIND "find"
 #define SEARCH "search"
 #define DELETE "delete"
-
+#define HELP_DESCRIPTION "Imprime os comandos disponíveis."
+#define QUIT_DESCRIPTION "Termina o programa."
+#define SET_DESCRIPTION "Adiciona ou modifica o valor a armazenar."
+#define PRINT_DESCRIPTION "Imprime todos os caminhos e valores."
+#define FIND_DESCRIPTION "Imprime o valor armazenado."
+#define LIST_DESCRIPTION "Lista todos os componentes de um caminho."
+#define SEARCH_DESCRIPTION "Procura o caminho dado um valor."
+#define DELETE_DESCRIPTION "Apaga um caminho e todos os subcaminhos."
+#define NUMBER_OF_COMMANDS 8
 
 void read_input(char *instruction, int context);
 int space(char c);
+void execute_command(char *instruction);
+void help_command();
 
 int main() {
     char instruction[INSTRUCTION_SIZE];
@@ -33,6 +43,8 @@ int main() {
     printf("%s\n", instruction);
 
     while (strcmp(instruction, QUIT)) {
+
+        execute_command(instruction);
         read_input(instruction, SPACES);
     }
 
@@ -78,4 +90,24 @@ void read_input(char *instruction, int context) {
  * an integer other than 0, if that is the case */
 int space(char c) {
     return c == '\t' || c == ' ' || c == '\n';
+}
+
+
+void execute_command(char *instruction) {
+    if (!strcmp(instruction, HELP)) {
+        help_command();
+    }
+}
+
+void help_command() {
+    char* descriptions[] = { HELP_DESCRIPTION, QUIT_DESCRIPTION, SET_DESCRIPTION,
+                PRINT_DESCRIPTION, FIND_DESCRIPTION, LIST_DESCRIPTION,
+                SEARCH_DESCRIPTION, DELETE_DESCRIPTION };
+    char* commands[] = { HELP, QUIT, SET, PRINT, FIND, LIST, SEARCH, DELETE };
+
+    int i;
+
+    for (i = 0; i < NUMBER_OF_COMMANDS; i++) {
+        printf("%s: %s\n", commands[i], descriptions[i]);
+    }
 }
