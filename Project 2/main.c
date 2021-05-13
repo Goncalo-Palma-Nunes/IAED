@@ -6,12 +6,22 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 
 #define INSTRUCTION_SIZE 65535
 #define TRUE 1
 #define FALSE 0
 #define NO_SPACES 1
 #define SPACES -1
+#define QUIT "quit"
+#define HELP "help"
+#define SET "set"
+#define PRINT "print"
+#define LIST "list"
+#define FIND "find"
+#define SEARCH "search"
+#define DELETE "delete"
+
 
 void read_input(char *instruction, int context);
 int space(char c);
@@ -21,6 +31,10 @@ int main() {
 
     read_input(instruction, SPACES);
     printf("%s\n", instruction);
+
+    while (strcmp(instruction, QUIT)) {
+        read_input(instruction, SPACES);
+    }
 
     return 0;
 }
