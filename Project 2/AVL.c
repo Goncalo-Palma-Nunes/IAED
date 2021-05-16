@@ -9,30 +9,12 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include "AVL.h"
 
-
-typedef struct Node {
-    char *value;
-    struct Node *next;
-    struct Node *previous;
-
-} Node;
-
-typedef struct List {
-    Node *first;
-    Node *last;
-
-} List;
-
-typedef struct TreeNode {
-    int height;
-    char *value;
-    List *childrenList;
-    struct TreeNode *right;
-    struct TreeNode *left;
-
-} TreeNode;
-
+int main() {
+    return 0;
+}
 
 /* Returns a pointer to a newly created doubly linked list. The pointers
  * to the list's first and last nodes are both pointers to NULL */
@@ -150,14 +132,14 @@ TreeNode* search(TreeNode *h, char *v) {
 
 /* Allocates memory for a new TreeNode and returns a pointer to the newly 
  * created node */
-TreeNode* NewTN(char* value) {
-    TreeNode *x = (link)malloc(sizeof(TreeNode));
-    List *children_list = Listinit();
+TreeNode* NewTN(char* value, TreeNode *left, TreeNode *right) {
+    TreeNode *x = (TreeNode *)malloc(sizeof(TreeNode));
+    List *children_list = ListInit();
 
     x->height = 1;
     x->value = value;
-    x->left = NULL;
-    x->right = NULL;
+    x->left = left;
+    x->right = right;
     x->childrenList = children_list;
 
     return x;
@@ -181,24 +163,6 @@ TreeNode *insert(TreeNode* h, char *value) {
     return h;
 }
 
-/* Receives a pointer to a TreeNode and a key v. Searches recursively through
- * the node and all of its children nodes for the key. */
-char* search(TreeNode *h, char *v) {
-
-    if (h == NULL) {
-        return NULL;
-    }
-    else if (!strcmp(v, h->value)) {
-        return h->value;
-    }
-    else if (strcmp(v, h->value) < 0) {
-        return search(h->left, v);
-    }
-    else {
-        return search(h->right, v);
-    }
-}
-
 /* Returns an integer corresponding to the number of nodes in the tree */
 int count(TreeNode *h) {
     if (h == NULL) {
@@ -207,6 +171,28 @@ int count(TreeNode *h) {
     
     else {
         return count(h->right) + count(h->left) + 1;
+    }
+}
+
+/* Returns a pointer to the descendant of TreeNode h with the largest
+ * value */
+TreeNode* max(TreeNode *h) {
+    if (h == NULL || h->right == NULL) {
+        return h;
+    }
+    else {
+        return max(h->right);
+    }
+}
+
+/* Returns a pointer to the descendant of TreeNode h with the smallest
+ * value */
+TreeNode* min(TreeNode *h) {
+    if (h == NULL || h->left == NULL) {
+        return h;
+    }
+    else {
+        return min(h->left);
     }
 }
 
@@ -234,24 +220,24 @@ int balance(TreeNode *node)
 TreeNode* rotateL(TreeNode *h) {
     
     int hleft, hright, xleft, xright;
-    TreeNode *x = h->right;
-    h->right = x->left;
-    x->left = h;
+    TreeNode *x = h->left;
+    h->left = x->right;
+    x->right = h;
     
-    hleft = height(h->left);
+    hleft = height(h->left); 
     hright = height(h->right);
     h->height = hleft > hright ? hleft + 1 : hright + 1;
     
     xleft = height(x->left);
     xright = height(x->right);
     x->height = xleft > xright ? xleft + 1 : xright + 1;
-    
-    return x;
+
+    return x; 
 }
 
-/* Receives a pointer to a TreeNode and performs a left rotation on that node
+/* Receives a pointer to a TreeNode and performs a right rotation on that node
  * and its immediate children nodes */
-TreeNode rotateL(TreeNode *h) {
+TreeNode* rotateR(TreeNode *h) {
     
     int hleft, hright, xleft, xright;
     TreeNode *x = h->left;
@@ -271,7 +257,7 @@ TreeNode rotateL(TreeNode *h) {
 
 /* Receives a pointer to a TreeNode and performs a left-right double
  * rotation */
-TreeNode* rotatetLR(TreeNode *h) {
+TreeNode* rotateLR(TreeNode *h) {
     
     if (h == NULL) {
     return h;
