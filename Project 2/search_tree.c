@@ -48,14 +48,14 @@ TreeNode** nodeChildren(TreeNode *h) {
 TreeNode* firstChild(TreeNode *h) {
     
     if (numberChildren(h)) {
-        return h->children[0]
+        return h->children[0];
     }
     return NULL;
 }
 
 /* Receives a pointer to a TreeNode and returns the capacity of children nodes
  * it can currently hold */
-TreeNode* capacity(TreeNode *h) {
+int capacity(TreeNode *h) {
     return h->capacity;
 }
 
@@ -65,7 +65,7 @@ int  emptyT(TreeNode *h) {
     if (h == NULL) {
         return EMPTY;
     }
-    return NOT_EMPTY;
+    return NON_EMPTY;
 }
 
 /* Allocates memory for a new TreeNode and returns a pointer to the newly
@@ -73,7 +73,7 @@ int  emptyT(TreeNode *h) {
 TreeNode* NewTN(char* value, int instant) {
     TreeNode *x = (TreeNode *)malloc(sizeof(TreeNode));
 
-    x->children = (char **) malloc(sizeof(char *) * CAPACITY);
+    x->children = (TreeNode **) malloc(sizeof(TreeNode *) * CAPACITY);
     x->capacity = CAPACITY;
     x->childrenNumber = 0;
     x->creation = instant;
@@ -96,7 +96,7 @@ TreeNode* searchT(TreeNode *h, char *value) {
     if (h == NULL) {
         return NULL;
     }
-    else if (equal(h,v)) {
+    else if (equal(h,value)) {
         return h;
     }
     children = nodeChildren(h);
@@ -126,9 +126,9 @@ TreeNode* insert(TreeNode *h, char *value, int instant) {
     occupation = numberChildren(h);
     cap = capacity(h);
     if (cap == occupation) {
-        children = (char **) realloc(children, cap + cap);
+        children = (TreeNode **) realloc(children, cap + cap);
     }
-    children[x->childrenNumber++] = new;
+    children[h->childrenNumber++] = new;
 }
 
 /* Frees the memory associated with a TreeNode */
