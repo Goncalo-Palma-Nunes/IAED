@@ -15,6 +15,7 @@
 typedef struct tree {
     int creation;
     char *value;
+    char *key;
     int childrenNumber;
     int capacity;
     struct tree **children;
@@ -28,6 +29,9 @@ typedef struct tree {
 TreeNode* Treeinit();
 
 /* Receives a pointer to a TreeNode and returns its key value */
+char* pathT(TreeNode *h);
+
+/* Receives a pointer to a TreeNode and returns its path */
 char* keyT(TreeNode *h);
 
 /* Receives a pointer to a TreeNode and returns an integer corresponding
@@ -49,6 +53,10 @@ TreeNode* firstChild(TreeNode *h);
  * it can currently hold */
 int capacity(TreeNode *h);
 
+
+/* Receives a pointer to a TreeNode and a key and updates the node's current
+ * key */
+TreeNode* changeKey(TreeNode *h, char *key);
 
 /* Receives a pointer to a TreeNode and returns an integer EMPTY, as defined in
  * search_tree.h, if the tree is empty, otherwise returns NOT_EMPTY */
