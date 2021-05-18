@@ -11,9 +11,6 @@
 #include <string.h>
 #include "search_tree.h"
 
-int main() {
-    return 0;
-}
 
 /* Returns a pointer to the root of a new search tree */
 TreeNode* Treeinit() {
@@ -22,9 +19,14 @@ TreeNode* Treeinit() {
     return head;
 }
 
-/* Receives a pointer to a TreeNode and returns its key value */
-char* keyT(TreeNode *h) {
+/* Receives a pointer to a TreeNode and returns its path */
+char* pathT(TreeNode *h) {
     return h->value;
+}
+
+/* Receives a pointer to a TreeNode and returns its key */
+char* keyT(TreeNode *h) {
+    return h->key;
 }
 
 /* Receives a pointer to a TreeNode and returns an integer corresponding
@@ -59,6 +61,13 @@ int capacity(TreeNode *h) {
     return h->capacity;
 }
 
+/* Receives a pointer to a TreeNode and a key and updates the node's current
+ * key */
+TreeNode* changeKey(TreeNode *h, char *key) {
+    h->key = key;
+    return h;
+}
+
 /* Receives a pointer to a TreeNode and returns an integer EMPTY, as defined in
  * search_tree.h, if the tree is empty, otherwise returns NOT_EMPTY */
 int  emptyT(TreeNode *h) {
@@ -73,18 +82,29 @@ int  emptyT(TreeNode *h) {
 TreeNode* NewTN(char* value, int instant) {
     TreeNode *x = (TreeNode *)malloc(sizeof(TreeNode));
 
+    /*printf("Antes do malloc das criancas\n");*/
     x->children = (TreeNode **) malloc(sizeof(TreeNode *) * CAPACITY);
+    /*printf("Depois do malloc das criancas\n");*/
     x->capacity = CAPACITY;
+    x->key = NULL;
     x->childrenNumber = 0;
     x->creation = instant;
-    strcpy(x->value, value);
+    x->value = value;
+    /*x->value = (char *) malloc(sizeof(char) * size);*/
+    /*strcpy(x->value, value);*/
+    printf("Fim da NewTN\n");
 
     return x;
 }
 
 /* Returns an integer other than zero, if value v is stored on TreeNode h */
 int equal(TreeNode *h, char *value) {
-    return strcmp(keyT(h), value);
+    int res;
+    printf("Roger Roger\n");
+    res = !strcmp(pathT(h), value);
+    printf("Welcome to Dubai gentlemen\n");
+    return res;
+    /*return !strcmp(pathT(h), value);*/
 }
 
 /* Searches the tree recursively for the first node with the key value.
@@ -126,9 +146,14 @@ TreeNode* insert(TreeNode *h, char *value, int instant) {
     occupation = numberChildren(h);
     cap = capacity(h);
     if (cap == occupation) {
-        children = (TreeNode **) realloc(children, cap + cap);
+        cap = cap + cap;
+        children = (TreeNode **) realloc(children, cap);
     }
+    printf("insert: Prestes a inserir o novo elemento na lista de filhos\n");
     children[h->childrenNumber++] = new;
+    h->capacity = cap;
+
+    return new;
 }
 
 /* Frees the memory associated with a TreeNode */
@@ -141,15 +166,17 @@ void deleteNode(TreeNode *h) {
 /* Deletes recursively a TreeNode h and all its descendant nodes */
 TreeNode* delete(TreeNode *h) {
     TreeNode **children = nodeChildren(h);
-    int cap, occ, i;
+    int occ, i;
 
     occ = numberChildren(h);
-    cap = capacity(h);
     if (occ == 0) {
         deleteNode(h);
     }
     for (i = 0; i < occ; i++) {
         delete(children[i]);
+        h->capacity--;
     }
     deleteNode(h);
+
+    return NULL;
 }
