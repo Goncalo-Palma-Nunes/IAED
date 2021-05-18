@@ -7,7 +7,11 @@
 
 /* Constants */
 
-#define M 100000  /* Size of the table */
+#define M 50000  /* Size of the table */
+
+
+#include <stdio.h>          /*APAGAR ISTO DEPOIS*/
+
 
 /* Function Prototypes */
 
@@ -20,7 +24,7 @@ TreeNode** STinit();
 
 /* Receives an integer representation of the key to an item and deletes
  * the first item found with that key */
-void STdelete(unsigned long id, TreeNode **st)
+void STdelete(char *id, TreeNode **st);
 
 /* Receives a pointer to a TreeNode to a hash table and inserts the TreeNode
  * on the table */
