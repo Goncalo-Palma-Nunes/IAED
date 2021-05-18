@@ -5,14 +5,9 @@
 */
 
 
-/*#include "hashtable.h"*/
 #include <stdlib.h>
-#include "search_table.h"
-
-
-int main() {
-    return 0;
-}
+#include "search_tree.h"
+#include "hash_table.h"
 
 
 /* Hash function for the table. Receives a pointer to char and the size of
@@ -20,13 +15,26 @@ int main() {
 int hash(char *v) { 
     int h, a = 31415, b = 27183;
     
-    for (h = 0; *v != ’\0’; v++, a = a*b % (M-1))
+    /*printf("Inicio de hashing function\n");*/
+    for (h = 0; *v != '\0'; v++, a = a * b % (M - 1)) {
         h = (a*h + *v) % M;
+        /*printf("A iterar\n");*/
+    }
+    /*printf("Fim da hashing function\n");*/
 
     return h;
 }
 
+int hashtwo(char *v) {
+    int h, a = 17389, b = 16747;
 
+    /*printf("Inicio de hash two\n");*/
+    for (h = 0; *v != '\0'; v++, a = a * b % (M - 1)) {
+        h = (a * h + *v) % M;
+    }
+    /*printf("Fim da hash two\n");*/
+    return h;
+}
 /* Initializes a hash table and returns a pointer to the start of the table */
 TreeNode** STinit() {
     int i;
@@ -42,13 +50,13 @@ TreeNode** STinit() {
 
 /* Receives an integer representation of the key to an item and deletes
  * the first item found with that key */
-void STdelete(unsigned long id, TreeNode **st) { 
-    int j, k, i = hash(id, M) 
-    int k = hashtwo(v, M);
+void STdelete(char *id, TreeNode **st) { 
+    int j, k, i = hash(id);
     TreeNode *v;
+    k = hashtwo(id);
 
     while (st[i] != NULL) {
-        if (equal(st[i], v)) break;
+        if (equal(st[i], id)) break;
         
         else i = (i+k) % M;
     }
@@ -56,7 +64,6 @@ void STdelete(unsigned long id, TreeNode **st) {
         return;
     }
 
-/*    free(st[i]->value);*/
     free(pathT(st[i]));
     free(keyT(st[i]));
     free(st[i]);
@@ -64,7 +71,7 @@ void STdelete(unsigned long id, TreeNode **st) {
     for (j = (i+k) % M; st[j] != NULL; j = (j+k) % M) {
         v = st[j]; 
         st[j] = NULL;
-        STinsert(v);
+        STinsert(v, st);
     }
 }
 
@@ -72,26 +79,36 @@ void STdelete(unsigned long id, TreeNode **st) {
  * on the table */
 void STinsert(TreeNode *node, TreeNode **st) {
     char *v = pathT(node);
-    int i = hash(v, M);
-    int k = hashtwo(v, M);
+    int i = hash(v);
+    int k = hashtwo(v);
+    printf("STinsert: O valor da hash eh '%d'\n", i);
+    printf("STinsert: Vamos entrar no loop\n");
     while (st[i] != NULL) {
         i=(i+k)%M;
     }
-   st[i] = node;
+    printf("STinsert: Saimos com sucesso do loop\n");
+    st[i] = node;
+    printf("STinsert: Acabou a funcao\n");
 }
 
 /* Receives a pointer to a hash table and returns the first element found
  * with the value v */
 TreeNode* STsearch(char *v, TreeNode **st) {
-    int i = hash(v, M);
-    int k = hashtwo(v, M);
+    int i = hash(v);
+    int k = hashtwo(v);
+    /*printf("STsearch: O valor da hash eh '%d'\n", i);
+    printf("STsearch: Vamos entrar no loop e procurar um node com o valor '%s'\n", v);*/
     while (st[i] != NULL) {
+        /*printf("STsearch: Estamos a iterar. O node atual tem o valor '%s'\n", st[i]->value);*/
         if (equal(st[i], v)) { 
+            /*printf("STsearch: Foi encontrado o elemento. Termina a funcao\n");*/
             return st[i];
         }
         else {
+            /*printf("STsearch: Vai se incrementar\n");*/
             i = (i+k) % M;
         }
     }
+    /*printf("STsearch: A funcao terminou e nao encontrou nada\n");*/
     return NULL;
 }
