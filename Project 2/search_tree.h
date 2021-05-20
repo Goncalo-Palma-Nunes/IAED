@@ -19,6 +19,7 @@ typedef struct tree {
     int creation;
     char *value;
     char *key;
+    char *component;
     int childrenNumber;
     int capacity;
     struct tree **children;
@@ -36,6 +37,10 @@ char* pathT(TreeNode *h);
 
 /* Receives a pointer to a TreeNode and returns its path */
 char* keyT(TreeNode *h);
+
+/* Receives a pointer to a TreeNode and returns the final
+ * component of the path */
+char* componentT(TreeNode *h);
 
 /* Receives a pointer to a TreeNode and returns an integer corresponding
  * to the instant of creation of the node */
@@ -67,7 +72,7 @@ int  emptyT(TreeNode *h);
 
 /* Allocates memory for a new TreeNode and returns a pointer to the newly
  * created node */
-TreeNode* NewTN(char* value, int instant, int size);
+TreeNode* NewTN(char* value, int instant, int size, char *component);
 
 /* Returns an integer other than zero, if value v is stored on TreeNode h */
 int equal(TreeNode *h, char *value, int context);
@@ -78,7 +83,8 @@ TreeNode* searchT(TreeNode *h, char *value);
 
 /* Creates a new child node to h, inserting it as the last of its children
  * nodes */
-TreeNode* insert(TreeNode *h, char *value, int instant, int size);
+TreeNode* insert(TreeNode *h, char *value, int instant, int size, 
+                char *component);
 
 /* Frees the memory associated with a TreeNode */
 void deleteNode(TreeNode *h);
@@ -94,3 +100,5 @@ int partition(TreeNode **children, int left, int right, int context);
 int less(TreeNode *a, TreeNode *b, int context);
 
 TreeNode* traverseTree(TreeNode *h);
+
+void printChildren(TreeNode *node);
