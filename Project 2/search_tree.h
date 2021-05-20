@@ -9,6 +9,9 @@
 #define EMPTY 0
 #define NON_EMPTY 1
 #define CAPACITY 25
+#define CREATION 1
+#define PATH 2
+#define KEY 3
 
 /* Structure Declaration */
 
@@ -56,7 +59,7 @@ int capacity(TreeNode *h);
 
 /* Receives a pointer to a TreeNode and a key and updates the node's current
  * key */
-TreeNode* changeKey(TreeNode *h, char *key);
+TreeNode* changeKey(TreeNode *h, char *key, int size);
 
 /* Receives a pointer to a TreeNode and returns an integer EMPTY, as defined in
  * search_tree.h, if the tree is empty, otherwise returns NOT_EMPTY */
@@ -64,10 +67,10 @@ int  emptyT(TreeNode *h);
 
 /* Allocates memory for a new TreeNode and returns a pointer to the newly
  * created node */
-TreeNode* NewTN(char* value, int instant);
+TreeNode* NewTN(char* value, int instant, int size);
 
 /* Returns an integer other than zero, if value v is stored on TreeNode h */
-int equal(TreeNode *h, char *value);
+int equal(TreeNode *h, char *value, int context);
 
 /* Searches the tree recursively for the first node with the key value.
  * If none is found, returns NULL */
@@ -75,10 +78,19 @@ TreeNode* searchT(TreeNode *h, char *value);
 
 /* Creates a new child node to h, inserting it as the last of its children
  * nodes */
-TreeNode* insert(TreeNode *h, char *value, int instant);
+TreeNode* insert(TreeNode *h, char *value, int instant, int size);
 
 /* Frees the memory associated with a TreeNode */
 void deleteNode(TreeNode *h);
 
-/* Deletes recursively a TreeNode h and all its descendant nodes */
+/* Deletes a TreeNode recursively h and all its descendant nodes */
 TreeNode* delete(TreeNode *h);
+
+
+void quicksort(TreeNode **children, int left, int right, int context);
+
+int partition(TreeNode **children, int left, int right, int context);
+
+int less(TreeNode *a, TreeNode *b, int context);
+
+TreeNode* traverseTree(TreeNode *h);
