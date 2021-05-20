@@ -9,10 +9,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include "search_tree.h"
-#include "hash_table.h"
+#include "hash_table.h"                             /* Estou com stack overflow */
 
-#define ROOT_SIZE 2
-#define INSTRUCTION_SIZE 65536
+#define ROOT_SIZE 2                                 /* Parece crashar ao segundo set */
+#define INSTRUCTION_SIZE 65536                      /* Ao acrescentar / tambem causa uns erros */
 #define TRUE 1
 #define FALSE 0
 #define NO_SPACES 1
@@ -42,6 +42,8 @@ int space(char c);
 void execute_command(char *instruction, TreeNode **table, TreeNode *root);
 void help_command();
 void set(char *path, int size, TreeNode **table, TreeNode *root);
+void print(TreeNode *root);
+
 
 int main() {
     char instruction[INSTRUCTION_SIZE];
@@ -57,6 +59,8 @@ int main() {
         read_input(instruction, NO_SPACES);
     }
 
+    free(table);
+    delete(root);
     return 0;
 }
 
@@ -70,7 +74,7 @@ TreeNode* createRoot(TreeNode **table) {
     strcpy(path, SLASH);
 
     tree = Treeinit();
-    root = insert(tree, path, 0);
+    root = insert(tree, path, 0, 2);
     STinsert(root, table);
 
     return root;
@@ -127,6 +131,10 @@ void execute_command(char *instruction, TreeNode **table, TreeNode *root) {
         size = read_input(instruction, NO_SPACES);
         set(instruction, size, table, root);
     }
+    else if (!strcmp(instruction, PRINT)) {
+        printf("Execute Command: Entrou no branch do print\n");
+        print(root);
+    }
 }
 
 /* Prints a description of all commands */
@@ -147,37 +155,51 @@ void help_command() {
  * is update, otherwise the path is created */
 void set(char *path, int size, TreeNode **table, TreeNode *root) {
     char *token, *str = (char *) malloc(sizeof(char) * size);
-    TreeNode *new, *current, *parent = root;
+    TreeNode *current, *parent = root;
     static int instant = 0;
 
     token = strtok(path, SLASH);
     /*printf("O primeiro token é '%s'\n", token);*/
-    printf("O numero de filhos de root eh '%d'\n", numberChildren(root));
+    /*printf("O numero de filhos de root eh '%d'\n", numberChildren(root));*/
 
     str[0] = '/'; str[1] = '\0';
     while (token != NULL) {
+        /*printf("PAI ANTES DA CONCATENACAO '%s'\n", parent->value);*/
         strcat(str, token);
         /*printf("Mission accomplished\n");*/
-        /*strcat(str, SLASH);*/
+        strcat(str, SLASH);
+        /*printf("PAI ANTES DA PROCURA '%s'\n", parent->value);*/
         current = STsearch(str, table); /* Check for path on hash table */
+        /*printf("PAI DEPOIS DO SEARCH '%s'\n", parent->value);*/
         /*printf("Depois de procurar na hash table\n");
         printf("A string atualmente eh '%s'\n", str);*/
         if (current == NULL) { /* If no such path exists yet */
+            /*printf("O pai deste eh '%s'\n", parent->value);*/
             /*new = NewTN(str, instant);*/
             /*printf("Esta a tentar criar um novo\n");*/
-            new = insert(parent, str, instant); /* Insert new path on the tree */
+            current = insert(parent, str, instant, size); /* Insert new path on the tree */
             /*printf("Conseguiu criar o novo node\n");*/
-            STinsert(new, table);               /* and on the hash table */
+            STinsert(current, table);               /* and on the hash table */
             /*printf("Conseguiu inseri-o na hash table\n");*/
             instant++;
         }
         token = strtok(NULL, SLASH);
+        /*strcat(str, SLASH);*/
+        /*printf("Conseguiu fazer o append, agora eh '%s'\n", str);*/
         parent = current;
     }
     /*printf("We did it folks. Pack it up\n");*/
-    read_input(path, SPACES);
+    size = read_input(path, SPACES);
     /*printf("Vamos lá inserir-lhe a key '%s'\n", path);*/
-    changeKey(new, path); /* Updates or creates the path's key */
+    changeKey(current, path, size); /* Updates or creates the path's key */
 
-    printf("O numero de filhos da root eh '%d'\n", numberChildren(root));
+    /*printf("O new tem como path '%s' e tem de valor '%s'\n", new->value, new->key);
+    printf("O numero de filhos da root eh '%d'\n", numberChildren(root));*/
+}
+
+
+void print(TreeNode *root) {
+    traverseTree(root);
+   
+    return;
 }
