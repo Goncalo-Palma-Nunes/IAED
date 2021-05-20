@@ -13,8 +13,8 @@
 /* Hash function for the table. Receives a pointer to char and the size of
  * the table and returns an index on the table */
 int hash(char *v) { 
-    int h, a = 31415, b = 27183;
-    
+    int h, a = 6229, b = 7211;
+    /*printf("AQUIIIII '%s' AQUIIII\n", v);*/
     /*printf("Inicio de hashing function\n");*/
     for (h = 0; *v != '\0'; v++, a = a * b % (M - 1)) {
         h = (a*h + *v) % M;
@@ -26,7 +26,7 @@ int hash(char *v) {
 }
 
 int hashtwo(char *v) {
-    int h, a = 17389, b = 16747;
+    int h, a = 7547, b = 6679;
 
     /*printf("Inicio de hash two\n");*/
     for (h = 0; *v != '\0'; v++, a = a * b % (M - 1)) {
@@ -56,7 +56,7 @@ void STdelete(char *id, TreeNode **st) {
     k = hashtwo(id);
 
     while (st[i] != NULL) {
-        if (equal(st[i], id)) break;
+        if (equal(st[i], id, PATH)) break;
         
         else i = (i+k) % M;
     }
@@ -81,14 +81,14 @@ void STinsert(TreeNode *node, TreeNode **st) {
     char *v = pathT(node);
     int i = hash(v);
     int k = hashtwo(v);
-    printf("STinsert: O valor da hash eh '%d'\n", i);
-    printf("STinsert: Vamos entrar no loop\n");
+    /*printf("STinsert: O valor da hash eh '%d'\n", i);
+    printf("STinsert: Vamos entrar no loop\n");*/
     while (st[i] != NULL) {
         i=(i+k)%M;
     }
-    printf("STinsert: Saimos com sucesso do loop\n");
+    /*printf("STinsert: Saimos com sucesso do loop\n");*/
     st[i] = node;
-    printf("STinsert: Acabou a funcao\n");
+    /*printf("STinsert: Acabou a funcao\n");*/
 }
 
 /* Receives a pointer to a hash table and returns the first element found
@@ -99,8 +99,9 @@ TreeNode* STsearch(char *v, TreeNode **st) {
     /*printf("STsearch: O valor da hash eh '%d'\n", i);
     printf("STsearch: Vamos entrar no loop e procurar um node com o valor '%s'\n", v);*/
     while (st[i] != NULL) {
+        /*printf("Good one, boss! O indice eh '%d'\n", i);*/
         /*printf("STsearch: Estamos a iterar. O node atual tem o valor '%s'\n", st[i]->value);*/
-        if (equal(st[i], v)) { 
+        if (equal(st[i], v, PATH)) { 
             /*printf("STsearch: Foi encontrado o elemento. Termina a funcao\n");*/
             return st[i];
         }
