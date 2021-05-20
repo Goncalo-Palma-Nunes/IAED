@@ -30,6 +30,12 @@ char* keyT(TreeNode *h) {
     return h->key;
 }
 
+/* Receives a pointer to a TreeNode and returns the final
+ * component of the path */
+char* componentT(TreeNode *h) {
+    return h->component;
+}
+
 /* Receives a pointer to a TreeNode and returns an integer corresponding
  * to the instant of creation of the node */
 int instantT(TreeNode *h) {
@@ -67,7 +73,7 @@ int capacity(TreeNode *h) {
 /* Receives a pointer to a TreeNode and a key and updates the node's current
  * key */
 TreeNode* changeKey(TreeNode *h, char *key, int size) {
-    h->key = (char *) malloc(sizeof(char) * size);
+    h->key = (char *) malloc(sizeof(char) * (size + 2));
     strcpy(h->key, key);
     return h;
 }
@@ -83,18 +89,19 @@ int  emptyT(TreeNode *h) {
 
 /* Allocates memory for a new TreeNode and returns a pointer to the newly
  * created node */
-TreeNode* NewTN(char* value, int instant, int size) {
-    TreeNode *x = (TreeNode *)malloc(sizeof(TreeNode));
+TreeNode* NewTN(char *value, int instant, int size, char *component) {
+    TreeNode *x = (TreeNode *) malloc(sizeof(TreeNode));
 
-    /*printf("Antes do malloc das criancas\n");*/
     x->children = (TreeNode **) malloc(sizeof(TreeNode *) * CAPACITY);
-    /*printf("Depois do malloc das criancas\n");*/
     x->capacity = CAPACITY;
     x->key = NULL;
     x->childrenNumber = 0;
     x->creation = instant;
+
+    x->component = (char *) malloc(sizeof(char) * (strlen(component) + 1));
+    strcpy(x->component, component);
     /*x->value = value;*/
-    x->value = (char *) malloc(sizeof(char) * size);
+    x->value = (char *) malloc(sizeof(char) * (size + 3));
     strcpy(x->value, value);
     /*printf("Fim da NewTN\n");*/
 
@@ -148,8 +155,9 @@ TreeNode* searchT(TreeNode *h, char *value) {
 
 /* Creates a new child node to h, inserting it as the last of its children
  * nodes */
-TreeNode* insert(TreeNode *h, char *value, int instant, int size) {
-    TreeNode **children, *new = NewTN(value, instant, size);
+TreeNode* insert(TreeNode *h, char *value, int instant, int size, 
+                char *component) {
+    TreeNode **children, *new = NewTN(value, instant, size, component);
     int cap, occupation;
 
     if (h == NULL) {
@@ -163,11 +171,11 @@ TreeNode* insert(TreeNode *h, char *value, int instant, int size) {
         cap = cap + cap;
         children = (TreeNode **) realloc(children, cap);
     }
-    printf("\ninsert: Prestes a inserir o novo elemento na lista de filhos\n");
-    printf("insert: O pai é '%s' e o filho é '%s'. Está a ser inserido em '%d'\n", h->value, new->value, h->childrenNumber);
+    /*printf("\ninsert: Prestes a inserir o novo elemento na lista de filhos\n");
+    printf("insert: O pai é '%s' e o filho é '%s'. Está a ser inserido em '%d'\n", h->value, new->value, h->childrenNumber);*/
     /*children[h->childrenNumber++] = new;*/
     h->children[h->childrenNumber++] = new;
-    printf("insert: Após inserção o number_children é '%d' e no indice anterior tem-se '%s'\n\n", h->childrenNumber, children[h->childrenNumber - 1]->value);
+    /*printf("insert: Após inserção o number_children é '%d' e no indice anterior tem-se '%s'\n\n", h->childrenNumber, children[h->childrenNumber - 1]->value);*/
     h->capacity = cap;
 
     return new;
@@ -274,4 +282,18 @@ TreeNode* traverseTree(TreeNode *h) {
 
     /*printf("traverseTree: Nao encontrei nada mais neste nó\n\n");*/
     return NULL;
+}
+
+void printChildren(TreeNode *node) {
+    int i, limit;
+    TreeNode **children;
+
+    /*printf("Tentativa\n");*/
+    limit = numberChildren(node);
+    /*printf("Erro\n");*/
+    children = nodeChildren(node);
+    quicksort(children, 0, limit - 1, PATH);
+    for (i = 0; i < limit; ++i) {
+        printf("%s\n", componentT(children[i]));
+    }
 }
