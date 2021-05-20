@@ -5,8 +5,8 @@
  * 2020/2021 IAED class
 */
 
-#include <stdio.h>
-#include <string.h>
+#include <stdio.h>                                  /* Primeiro if do find nao esta a fazer ali nada */
+#include <string.h>                                 /* Trocar o START_WITH_SLASH por um i = 0 ou algo assim */
 #include <stdlib.h>
 #include "search_tree.h"
 #include "hash_table.h"                             /* Estou com stack overflow */
@@ -14,11 +14,11 @@
 #define ROOT_SIZE 2                                 /* Parece crashar ao segundo set */
 #define INSTRUCTION_SIZE 65536                      /* Ao acrescentar / tambem causa uns erros */
 #define TRUE 1                                      /* Passar a parte do input do find para uma auxiliar para ficar bonito */
-#define FALSE 0
+#define FALSE 0                                     /* Abstrair os numeros hardcoded no find */
 #define NO_SPACES 1
-#define SPACES -1
-#define QUIT "quit"
-#define HELP "help"
+#define SPACES -1                   
+#define QUIT "quit"                                     /* Tentar abstrair os primeiros if/elses no find e list */
+#define HELP "help"                                 /* Eventualmente testar "list /" */
 #define SET "set"
 #define PRINT "print"
 #define LIST "list"
@@ -30,40 +30,46 @@
 #define SET_DESCRIPTION "Adiciona ou modifica o valor a armazenar."
 #define PRINT_DESCRIPTION "Imprime todos os caminhos e valores."
 #define FIND_DESCRIPTION "Imprime o valor armazenado."
-#define LIST_DESCRIPTION "Lista todos os componentes de um caminho."
+#define LIST_DESCRIPTION "Lista todos os componentes imediatos de um sub-caminho."
 #define SEARCH_DESCRIPTION "Procura o caminho dado um valor."
 #define DELETE_DESCRIPTION "Apaga um caminho e todos os subcaminhos."
 #define NUMBER_OF_COMMANDS 8
 #define SLASH "/"
 #define START_WITH_SLASH 1
+#define SLASH_SIZE 1
 #define DELIMITER '/'
+#define LAST_CHAR 2
 
 TreeNode* createRoot(TreeNode **table);
-int read_input(char *instruction, int context, int first_char);
+int read_input(char *instruction, int context, int first_char, 
+                char *terminal_char);
 int space(char c);
-void execute_command(char *instruction, TreeNode **table, TreeNode *root);
+void execute_command(char *instruction, TreeNode **table, TreeNode *root,
+                    char *terminal_char);
 void help_command();
 void set(char *path, int size, TreeNode **table, TreeNode *root);
 void print(TreeNode *root);
 void find(TreeNode **table, char *instruction);
-
+void list(char *path, TreeNode **table);
 
 int main() {
     char instruction[INSTRUCTION_SIZE];
+    char *last_char = (char *) malloc(sizeof(char) * LAST_CHAR);
     TreeNode *root, **table = STinit();
     
     root = createRoot(table);
-    read_input(instruction, NO_SPACES, FALSE);
-    printf("%s\n", instruction);
+    read_input(instruction, NO_SPACES, FALSE, last_char);
+    /*printf("%s\n", instruction);*/
 
     while (strcmp(instruction, QUIT)) {
 
-        execute_command(instruction, table, root);
-        read_input(instruction, NO_SPACES, FALSE);
+        execute_command(instruction, table, root, last_char);
+        read_input(instruction, NO_SPACES, FALSE, last_char);
+        /*printf("A instruction eh '%s'\n", instruction);*/
     }
 
-    free(table);
-    delete(root);
+    /*free(table);*/
+    /*delete(root);*/
     return 0;
 }
 
@@ -77,7 +83,7 @@ TreeNode* createRoot(TreeNode **table) {
     strcpy(path, SLASH);
 
     tree = Treeinit();
-    root = insert(tree, path, 0, 2);
+    root = insert(tree, path, 0, 2, SLASH);
     STinsert(root, table);
 
     return root;
@@ -88,8 +94,8 @@ TreeNode* createRoot(TreeNode **table) {
  * then the string terminates when a white space and all cases of consecutive
  * '/' chars are turned into a single one. If SPACES is passed, the 
  * aforementioned restrictions don't apply */
-int read_input(char *instruction, int context, int first_char) {
-    /*int i = 0;*/
+int read_input(char *instruction, int context, int first_char, 
+                char *terminal_char) {
     int i = (first_char == START_WITH_SLASH) ? TRUE : FALSE; /* if first char*/
     char c, last_char;                                       /* should be / */
 
@@ -112,6 +118,7 @@ int read_input(char *instruction, int context, int first_char) {
         last_char = c;
     }
     instruction[i] = '\0';
+    if (terminal_char != NULL) terminal_char[0] = c;
 
     return i;
 }
@@ -125,22 +132,26 @@ int space(char c) {
 
 
 /* Receives a command from an instruction and checks which command it is */
-void execute_command(char *instruction, TreeNode **table, TreeNode *root) {
+void execute_command(char *instruction, TreeNode **table, TreeNode *root,
+                    char *terminal_char) {
     int size;
-
+    /*printf("A instrucao eh '%s'\n", instruction);*/
     if (!strcmp(instruction, HELP)) {
         help_command();
     }
     else if (!strcmp(instruction, SET)) {
-        size = read_input(instruction, NO_SPACES, FALSE);
+        size = read_input(instruction, NO_SPACES, FALSE, NULL);
         set(instruction, size, table, root);
     }
     else if (!strcmp(instruction, PRINT)) {
-        printf("Execute Command: Entrou no branch do print\n");
+        /*printf("Execute Command: Entrou no branch do print\n");*/
         print(root);
     }
     else if (!strcmp(instruction, FIND)) {
         find(table, instruction);
+    }
+    else if (!strcmp(instruction, LIST)) {
+        list(terminal_char, table);
     }
 }
 
@@ -161,7 +172,7 @@ void help_command() {
 /* Receives a path and a key value. If the path already exists, its key value
  * is update, otherwise the path is created */
 void set(char *path, int size, TreeNode **table, TreeNode *root) {
-    char *token, *str = (char *) malloc(sizeof(char) * size);
+    char *token, *str = (char *) malloc(sizeof(char) * (size + 3));
     TreeNode *current, *parent = root;
     static int instant = 0;
 
@@ -174,29 +185,30 @@ void set(char *path, int size, TreeNode **table, TreeNode *root) {
         /*printf("PAI ANTES DA CONCATENACAO '%s'\n", parent->value);*/
         strcat(str, token);
         /*printf("Mission accomplished\n");*/
-        strcat(str, SLASH);
+        /*strcat(str, SLASH);                                   */
         /*printf("PAI ANTES DA PROCURA '%s'\n", parent->value);*/
         current = STsearch(str, table); /* Check for path on hash table */
         /*printf("PAI DEPOIS DO SEARCH '%s'\n", parent->value);*/
-        /*printf("Depois de procurar na hash table\n");
-        printf("A string atualmente eh '%s'\n", str);*/
+        /*printf("Depois de procurar na hash table\n");*/
+        /*printf("A string atualmente eh '%s'\n", str);*/
         if (current == NULL) { /* If no such path exists yet */
             /*printf("O pai deste eh '%s'\n", parent->value);*/
             /*new = NewTN(str, instant);*/
             /*printf("Esta a tentar criar um novo\n");*/
-            current = insert(parent, str, instant, size); /* Insert new path on the tree */
+            /*printf("set: O token neste momento eh '%s'\n", token);*/
+            current = insert(parent, str, instant, size, token); /* Insert new path on the tree */
             /*printf("Conseguiu criar o novo node\n");*/
             STinsert(current, table);               /* and on the hash table */
             /*printf("Conseguiu inseri-o na hash table\n");*/
             instant++;
         }
         token = strtok(NULL, SLASH);
-        /*strcat(str, SLASH);*/
+        strcat(str, SLASH);
         /*printf("Conseguiu fazer o append, agora eh '%s'\n", str);*/
         parent = current;
     }
     /*printf("We did it folks. Pack it up\n");*/
-    size = read_input(path, SPACES, FALSE);
+    size = read_input(path, SPACES, FALSE, NULL);
     /*printf("Vamos lá inserir-lhe a key '%s'\n", path);*/
     changeKey(current, path, size); /* Updates or creates the path's key */
 
@@ -217,17 +229,24 @@ void print(TreeNode *root) {
 void find(TreeNode **table, char *path) {
     TreeNode *node;
     int length;
+    char *str;
 
-    path[0] = DELIMITER;
-    length = read_input(path, NO_SPACES, START_WITH_SLASH);
-    if (length > 2) {
-        path[length++] = DELIMITER;     /* Place a forward slash at the start */
-        path[length] = '\0';            /* and the end of the path */
+    /*path[0] = DELIMITER;*/
+    length = read_input(path, NO_SPACES, FALSE, NULL);
+    /*printf("O path eh '%s'\n", path);*/
+    if (path[0] != DELIMITER) {
+        str = (char *) malloc(sizeof(char) * (length + 2));
+        str[0] = DELIMITER;
+        strcat(str, path);
+        /*path[length++] = DELIMITER;*/     /* Place a forward slash at the start */
+        /*path[length] = '\0';*/            /* and the end of the path */
     }
     else {
-        path[1] = '\0';
+        str = path;
+        /*path[1] = '\0';*/
     }
-    node = STsearch(path, table);
+    /*printf("vai ser usado como path '%s'\n", str);*/
+    node = STsearch(str, table);
 
     if (node == NULL) {
         printf("not found\n");
@@ -238,4 +257,38 @@ void find(TreeNode **table, char *path) {
     else {
         printf("%s\n", keyT(node));
     }
+    if (str != path) {
+        free(str);
+    }
+}
+
+
+void list(char *path, TreeNode **table) {
+    TreeNode *node;
+    int length;
+    char *str;
+
+    if (path[0] == '\n') {
+        str = (char *) malloc(sizeof(char) * (SLASH_SIZE + 1));
+        strcpy(str, SLASH);
+    }
+    else {
+        length = read_input(path, NO_SPACES, FALSE, NULL);
+        if (path[0] != DELIMITER) {
+            str = (char *) malloc(sizeof(char) * (length + 2));
+            str[0] = DELIMITER;
+            strcat(str,path);
+        }
+        else {
+            str = path;
+        }
+    }
+    
+    node = STsearch(str, table);
+    if (node == NULL) {
+        printf("not found\n");
+        return;
+    }
+    printChildren(node);
+    if (str != path) free(str);
 }
