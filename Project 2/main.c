@@ -13,7 +13,7 @@
 
 #define ROOT_SIZE 2                                 /* Parece crashar ao segundo set */
 #define INSTRUCTION_SIZE 65536                      /* Ao acrescentar / tambem causa uns erros */
-#define TRUE 1
+#define TRUE 1                                      /* Passar a parte do input do find para uma auxiliar para ficar bonito */
 #define FALSE 0
 #define NO_SPACES 1
 #define SPACES -1
@@ -35,14 +35,17 @@
 #define DELETE_DESCRIPTION "Apaga um caminho e todos os subcaminhos."
 #define NUMBER_OF_COMMANDS 8
 #define SLASH "/"
+#define START_WITH_SLASH 1
+#define DELIMITER '/'
 
 TreeNode* createRoot(TreeNode **table);
-int read_input(char *instruction, int context);
+int read_input(char *instruction, int context, int first_char);
 int space(char c);
 void execute_command(char *instruction, TreeNode **table, TreeNode *root);
 void help_command();
 void set(char *path, int size, TreeNode **table, TreeNode *root);
 void print(TreeNode *root);
+void find(TreeNode **table, char *instruction);
 
 
 int main() {
@@ -50,13 +53,13 @@ int main() {
     TreeNode *root, **table = STinit();
     
     root = createRoot(table);
-    read_input(instruction, NO_SPACES);
+    read_input(instruction, NO_SPACES, FALSE);
     printf("%s\n", instruction);
 
     while (strcmp(instruction, QUIT)) {
 
         execute_command(instruction, table, root);
-        read_input(instruction, NO_SPACES);
+        read_input(instruction, NO_SPACES, FALSE);
     }
 
     free(table);
@@ -85,9 +88,10 @@ TreeNode* createRoot(TreeNode **table) {
  * then the string terminates when a white space and all cases of consecutive
  * '/' chars are turned into a single one. If SPACES is passed, the 
  * aforementioned restrictions don't apply */
-int read_input(char *instruction, int context) {
-    int i = 0;
-    char c, last_char;
+int read_input(char *instruction, int context, int first_char) {
+    /*int i = 0;*/
+    int i = (first_char == START_WITH_SLASH) ? TRUE : FALSE; /* if first char*/
+    char c, last_char;                                       /* should be / */
 
     while (space(c = getchar())); /* Ignores leading white spaces */
     instruction[i++] = c;
@@ -128,12 +132,15 @@ void execute_command(char *instruction, TreeNode **table, TreeNode *root) {
         help_command();
     }
     else if (!strcmp(instruction, SET)) {
-        size = read_input(instruction, NO_SPACES);
+        size = read_input(instruction, NO_SPACES, FALSE);
         set(instruction, size, table, root);
     }
     else if (!strcmp(instruction, PRINT)) {
         printf("Execute Command: Entrou no branch do print\n");
         print(root);
+    }
+    else if (!strcmp(instruction, FIND)) {
+        find(table, instruction);
     }
 }
 
@@ -189,7 +196,7 @@ void set(char *path, int size, TreeNode **table, TreeNode *root) {
         parent = current;
     }
     /*printf("We did it folks. Pack it up\n");*/
-    size = read_input(path, SPACES);
+    size = read_input(path, SPACES, FALSE);
     /*printf("Vamos lá inserir-lhe a key '%s'\n", path);*/
     changeKey(current, path, size); /* Updates or creates the path's key */
 
@@ -198,8 +205,37 @@ void set(char *path, int size, TreeNode **table, TreeNode *root) {
 }
 
 
+/* Receives a pointer to the root directory of the file system. Traverses the
+ * tree, printing all paths with a key value, by depth and order of creation */
 void print(TreeNode *root) {
     traverseTree(root);
-   
-    return;
+
+}
+
+/* Reads a path from input and checks if the path already exists. If it does
+ * and it has a key value, that value is printed, otherwise an error is raised */
+void find(TreeNode **table, char *path) {
+    TreeNode *node;
+    int length;
+
+    path[0] = DELIMITER;
+    length = read_input(path, NO_SPACES, START_WITH_SLASH);
+    if (length > 2) {
+        path[length++] = DELIMITER;     /* Place a forward slash at the start */
+        path[length] = '\0';            /* and the end of the path */
+    }
+    else {
+        path[1] = '\0';
+    }
+    node = STsearch(path, table);
+
+    if (node == NULL) {
+        printf("not found\n");
+    }
+    else if (keyT(node) == NULL) {
+        printf("no data\n");
+    }
+    else {
+        printf("%s\n", keyT(node));
+    }
 }
