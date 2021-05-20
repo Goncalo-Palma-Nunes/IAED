@@ -7,7 +7,7 @@
 
 /* Constants */
 
-#define M 50000  /* Size of the table */
+#define M 18427  /* Size of the table */
 
 
 #include <stdio.h>          /*APAGAR ISTO DEPOIS*/
