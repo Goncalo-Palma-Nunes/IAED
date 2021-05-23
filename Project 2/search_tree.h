@@ -22,6 +22,7 @@ typedef struct tree {
     char *component;
     int childrenNumber;
     int capacity;
+    struct tree *parent;
     struct tree **children;
 
 } TreeNode;
@@ -72,14 +73,15 @@ int  emptyT(TreeNode *h);
 
 /* Allocates memory for a new TreeNode and returns a pointer to the newly
  * created node */
-TreeNode* NewTN(char* value, int instant, int size, char *component);
+TreeNode* NewTN(char* value, int instant, int size, char *component,
+                TreeNode *h);
 
 /* Returns an integer other than zero, if value v is stored on TreeNode h */
 int equal(TreeNode *h, char *value, int context);
 
-/* Searches the tree recursively for the first node with the key value.
+/* Searches the tree recursively for the first node with a certain key value.
  * If none is found, returns NULL */
-TreeNode* searchT(TreeNode *h, char *value);
+TreeNode* searchT(TreeNode *h, char *value, int context);
 
 /* Creates a new child node to h, inserting it as the last of its children
  * nodes */
@@ -90,8 +92,9 @@ TreeNode* insert(TreeNode *h, char *value, int instant, int size,
 void deleteNode(TreeNode *h);
 
 /* Deletes a TreeNode recursively h and all its descendant nodes */
-TreeNode* delete(TreeNode *h);
+TreeNode* deleteT(TreeNode *h, TreeNode *root);
 
+void removeChild(TreeNode *parent, TreeNode *node);
 
 void quicksort(TreeNode **children, int left, int right, int context);
 
