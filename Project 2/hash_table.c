@@ -64,9 +64,9 @@ void STdelete(char *id, TreeNode **st) {
         return;
     }
 
-    free(pathT(st[i]));
+    /*free(pathT(st[i]));
     free(keyT(st[i]));
-    free(st[i]);
+    free(st[i]);*/
     st[i] = NULL; 
     for (j = (i+k) % M; st[j] != NULL; j = (j+k) % M) {
         v = st[j]; 
