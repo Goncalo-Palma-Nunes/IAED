@@ -5,23 +5,23 @@
  * 2020/2021 IAED class
 */
 
-#include <stdio.h>                                  /* Primeiro if do find nao esta a fazer ali nada */
-#include <string.h>                                 /* Trocar o START_WITH_SLASH por um i = 0 ou algo assim */
+#include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include "search_tree.h"
-#include "hash_table.h"                             /* Estou com stack overflow */
+#include "hash_table.h"
 
-#define ROOT_SIZE 2                                 /* Parece crashar ao segundo set */
-#define INSTRUCTION_SIZE 65536                      /* Ao acrescentar / tambem causa uns erros */
-#define TRUE 1                                      /* Passar a parte do input do find para uma auxiliar para ficar bonito */
-#define FALSE 0                                     /* Abstrair os numeros hardcoded no find */
+#define ROOT_SIZE 2
+#define INSTRUCTION_SIZE 65536
+#define TRUE 1
+#define FALSE 0
 #define NO_SPACES 1
 #define SPACES -1                   
-#define QUIT "quit"                                     /* Tentar abstrair os primeiros if/elses no find e list */
-#define HELP "help"                                 /* Eventualmente testar "list /" */
+#define QUIT "quit"
+#define HELP "help"
 #define SET "set"
 #define PRINT "print"
-#define LIST "list"                                 /* Meter o delete a apagar a root */
+#define LIST "list"
 #define FIND "find"
 #define SEARCH "search"
 #define DELETE "delete"
@@ -35,14 +35,14 @@
 #define DELETE_DESCRIPTION "Apaga um caminho e todos os subcaminhos."
 #define NUMBER_OF_COMMANDS 8
 #define SLASH "/"
-#define START_WITH_SLASH 1
 #define SLASH_SIZE 1
 #define DELIMITER '/'
 #define LAST_CHAR 2
+#define NOT_FOUND "not found\n"
+#define NO_DATA "no data\n"
 
 TreeNode* createRoot(TreeNode **table);
-int read_input(char *instruction, int context, int first_char, 
-                char *terminal_char);
+int read_input(char *instruction, int context, char *terminal_char);
 int space(char c);
 void execute_command(char *instruction, TreeNode **table, TreeNode *root,
                     char *terminal_char);
@@ -60,16 +60,16 @@ int main() {
     TreeNode *root, **table = STinit();
     
     root = createRoot(table);
-    read_input(instruction, NO_SPACES, FALSE, last_char);
+    read_input(instruction, NO_SPACES, last_char);
 
     while (strcmp(instruction, QUIT)) {
 
         execute_command(instruction, table, root, last_char);
-        read_input(instruction, NO_SPACES, FALSE, last_char);
+        read_input(instruction, NO_SPACES, last_char);
     }
+    free(table);
+    deleteT(root, root);
 
-    /*free(table);*/
-    /*delete(root);*/
     return 0;
 }
 
@@ -94,10 +94,9 @@ TreeNode* createRoot(TreeNode **table) {
  * then the string terminates when a white space and all cases of consecutive
  * '/' chars are turned into a single one. If SPACES is passed, the 
  * aforementioned restrictions don't apply */
-int read_input(char *instruction, int context, int first_char, 
-                char *terminal_char) {
-    int i = (first_char == START_WITH_SLASH) ? TRUE : FALSE; /* if first char*/
-    char c, last_char;                                       /* should be / */
+int read_input(char *instruction, int context, char *terminal_char) {
+    int i = 0;
+    char c, last_char;
 
     while (space(c = getchar())); /* Ignores leading white spaces */
     instruction[i++] = c;
@@ -140,7 +139,7 @@ void execute_command(char *instruction, TreeNode **table, TreeNode *root,
         help_command();
     }
     else if (!strcmp(instruction, SET)) {
-        size = read_input(instruction, NO_SPACES, FALSE, NULL);
+        size = read_input(instruction, NO_SPACES, NULL);
         set(instruction, size, table, root);
     }
     else if (!strcmp(instruction, PRINT)) {
@@ -179,46 +178,46 @@ void help_command() {
 void set(char *path, int size, TreeNode **table, TreeNode *root) {
     char *token, *str = (char *) malloc(sizeof(char) * (size + 3));
     TreeNode *current, *parent = root;
-    static int instant = 0;
+    static int instant = 1;
 
     token = strtok(path, SLASH);
-    /*printf("O primeiro token é '%s'\n", token);*/
-    /*printf("O numero de filhos de root eh '%d'\n", numberChildren(root));*/
 
     str[0] = '/'; str[1] = '\0';
     while (token != NULL) {
-        /*printf("PAI ANTES DA CONCATENACAO '%s'\n", parent->value);*/
         strcat(str, token);
-        /*printf("Mission accomplished\n");*/
-        /*strcat(str, SLASH);                                   */
-        /*printf("PAI ANTES DA PROCURA '%s'\n", parent->value);*/
-        current = STsearch(str, table); /* Check for path on hash table */
-        /*printf("PAI DEPOIS DO SEARCH '%s'\n", parent->value);*/
-        /*printf("Depois de procurar na hash table\n");*/
-        /*printf("A string atualmente eh '%s'\n", str);*/
-        if (current == NULL) { /* If no such path exists yet */
-            /*printf("O pai deste eh '%s'\n", parent->value);*/
-            /*new = NewTN(str, instant);*/
-            /*printf("Esta a tentar criar um novo\n");*/
-            /*printf("set: O token neste momento eh '%s'\n", token);*/
-            current = insert(parent, str, instant, size, token); /* Insert new path on the tree */
-            /*printf("Conseguiu criar o novo node\n");*/
-            STinsert(current, table);               /* and on the hash table */
-            /*printf("Conseguiu inseri-o na hash table\n");*/
+
+        current = STsearch(str, table);
+        if (current == NULL) {
+        /* Check for path on hash table, if no such path exists yet */
+        /*  Insert new path on the tree and on the hash table */
+            current = insert(parent, str, instant, size, token);
+            STinsert(current, table);
             instant++;
         }
         token = strtok(NULL, SLASH);
         strcat(str, SLASH);
-        /*printf("Conseguiu fazer o append, agora eh '%s'\n", str);*/
         parent = current;
     }
-    /*printf("We did it folks. Pack it up\n");*/
-    size = read_input(path, SPACES, FALSE, NULL);
-    /*printf("Vamos lá inserir-lhe a key '%s'\n", path);*/
+    size = read_input(path, SPACES, NULL);
     changeKey(current, path, size); /* Updates or creates the path's key */
+}
 
-    /*printf("O new tem como path '%s' e tem de valor '%s'\n", new->value, new->key);
-    printf("O numero de filhos da root eh '%d'\n", numberChildren(root));*/
+/* Reads a string from input. If the input doesn't begin with a forward slash,
+ * one is added at the start of the string, otherwise the input suffers no
+ * changes. The treated output is pointed at by char *path */
+void treat_input(char *path, char *input) {
+    int length;
+
+    length = read_input(input, NO_SPACES, NULL);
+    if (input[0] != DELIMITER) { /* If it doesn't start with a forward slash */
+        path = (char *) realloc(path, length + 2);
+        path[0] = DELIMITER;
+        path[1] = '\0';
+        strcat(path,input);
+    }
+    else {
+        path = input;
+    }
 }
 
 
@@ -233,31 +232,16 @@ void print(TreeNode *root) {
  * and it has a key value, that value is printed, otherwise an error is raised */
 void find(TreeNode **table, char *path) {
     TreeNode *node;
-    int length;
-    char *str;
+    char *str = (char *) malloc(sizeof(char));
 
-    /*path[0] = DELIMITER;*/
-    length = read_input(path, NO_SPACES, FALSE, NULL);
-    /*printf("O path eh '%s'\n", path);*/
-    if (path[0] != DELIMITER) {
-        str = (char *) malloc(sizeof(char) * (length + 2));
-        str[0] = DELIMITER;
-        strcat(str, path);
-        /*path[length++] = DELIMITER;*/     /* Place a forward slash at the start */
-        /*path[length] = '\0';*/            /* and the end of the path */
-    }
-    else {
-        str = path;
-        /*path[1] = '\0';*/
-    }
-    /*printf("vai ser usado como path '%s'\n", str);*/
+    treat_input(str, path);
     node = STsearch(str, table);
 
     if (node == NULL) {
-        printf("not found\n");
+        printf("%s", NOT_FOUND);
     }
     else if (keyT(node) == NULL) {
-        printf("no data\n");
+        printf("%s", NO_DATA);
     }
     else {
         printf("%s\n", keyT(node));
@@ -267,22 +251,22 @@ void find(TreeNode **table, char *path) {
     }
 }
 
-
+/* Reads a path from input and checks if it exists. If it does, the components
+ * for all of its immediate sub-directories are printed, otherwise an error is
+ * raised */
 void list(char *path, TreeNode **table) {
     TreeNode *node;
     int length;
     char *str;
 
-    /*printf("list: o que temos em path eh '%s'\n", path);*/
-    if (path[0] == '\n') {
+    if (path[0] == '\n') {  /* If no arguments were provided */
         str = (char *) malloc(sizeof(char) * (SLASH_SIZE + 1));
         strcpy(str, SLASH);
     }
     else {
-        length = read_input(path, NO_SPACES, FALSE, NULL);
+        length = read_input(path, NO_SPACES, NULL);
         if (path[0] != DELIMITER) {
             str = (char *) malloc(sizeof(char) * (length + 2));
-            /*printf("list: oq temos em str eh '%s'\n", str);*/
             str[0] = DELIMITER;
             str[1] = '\0';
             strcat(str,path);
@@ -291,78 +275,51 @@ void list(char *path, TreeNode **table) {
             str = path;
         }
     }
-    /*printf("list: vamos procurar '%s'\n", str);*/   
     node = STsearch(str, table);
     if (node == NULL) {
-        printf("not found\n");
+        printf("%s", NOT_FOUND);
         return;
     }
     printChildren(node);
     if (str != path) free(str);
 }
 
-
+/* Reads a key value from input and searches for the first path with that
+ * key. If none is found, an error is raised */
 void search(char *key, TreeNode *root) {
     TreeNode *node;
 
-    /*printf("Search: vamos começar a ler o input\n");*/
-    read_input(key, SPACES, FALSE, NULL);
-    /*printf("search: O input foi lido e é '%s'\n", key);*/
+    read_input(key, SPACES, NULL);
     node = searchT(root, key, KEY);
-    /*printf("O input foi lido com sucesso. O path é '%s' e o seu valor é '%s'\n", pathT(node), keyT(node));*/
 
     if (node != NULL) {
         printf("%s\n", pathT(node));
     }
     else {
-        printf("not found\n");
+        printf("%s", NOT_FOUND);
     }
 }
 
+/* Reads a path from input. If the path already exists, the path and all of its
+ * sub-directories are deleted (the memory allocated for each path and its
+ * components is freed), otherwise an error is raised */
 void delete(TreeNode **table, TreeNode *root, char *input, char *terminal_char) {
     TreeNode *node;
-    int length;
-    char *path;
+    char *path = (char *) malloc(sizeof(char));
 
-    /*printf("O terminal char eh '%s'\n", terminal_char);*/
-    if (terminal_char[0] == '\n') {
-        /*printf("Estamos a entrar no if para apagar a root\n");*/
+    if (terminal_char[0] == '\n') { /* If no arguments were provided */
         deleteT(root, root);
         return;
     }
     else {
-        length = read_input(input, NO_SPACES, FALSE, NULL);
-        if (input[0] != DELIMITER) {
-            path = (char *) malloc(sizeof(char) * (length + 2));
-            /*printf("list: oq temos em str eh '%s'\n", str);*/
-            path[0] = DELIMITER;
-            path[1] = '\0';
-            strcat(path,input);
-        }
-        else {
-            path = input;
-        }
+        treat_input(path, input);
     }
-
-    /*printf("delete: Prestes a ler o input\n");*/
-    /*length = read_input(input, NO_SPACES, FALSE, NULL);*/
-    /*printf("delete: O input lido foi '%s'. Vamos procurar na hash table\n", input);*/
-    /*path = (char *) malloc(sizeof(char) * (length + 2));
-    path[0] = DELIMITER;
-    path[1] = '\0';
-    strcat(path, input);*/
-    /*printf("delete: Depois de tratado, o input eh '%s'\n", path);*/
     node = STsearch(path, table);
-    /*printf("Encontrei na hash table\n");*/
     STdelete(path, table);
-    /*printf("Retirei-o da hash table\n");*/
     if (node == NULL) {
-        printf("not found\n");
+        printf("%s", NOT_FOUND);
     }
     else {
-        /*printf("O node foi encontrado e tinha como path '%s'\n", pathT(node));*/
         deleteT(node, root);
-        /*printf("Foi apagado com sucesso\n");*/
     }
-    /*free(path);*/
 }
