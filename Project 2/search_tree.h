@@ -1,5 +1,5 @@
 /*
- * File: search_tree.c
+ * File: search_tree.h
  * Author: Gonçalo Palma Ribeiro Graça Nunes
  * Description: Header file for a n-ary search tree
 */
@@ -94,14 +94,27 @@ void deleteNode(TreeNode *h);
 /* Deletes a TreeNode recursively h and all its descendant nodes */
 TreeNode* deleteT(TreeNode *h, TreeNode *root);
 
+/* Receives a pointer to a node and another to its parent-node. Removes it
+ * from its parent's array of children nodes, freeing the memory allocated for
+ * the removed node */
 void removeChild(TreeNode *parent, TreeNode *node);
 
+/* Implementation of a quicksort algorithm to sort arrays of TreeNode*s.
+ * Depending on the context provided, as argument, sort is done either
+ * alphabetically by path or by order of creation */
 void quicksort(TreeNode **children, int left, int right, int context);
 
+/* Implementation of quicksort's partition algorithm */
 int partition(TreeNode **children, int left, int right, int context);
 
+/* Returns and integer other than zero if a was created before b or if
+ * the path associated with a comes first, alphabetically, than the path
+ * associated with b */
 int less(TreeNode *a, TreeNode *b, int context);
 
+/* Traverses the tree and prints all the path and key of all nodes
+ * with a key value */
 TreeNode* traverseTree(TreeNode *h);
 
+/* Prints the last component of all immediate children of a TreeNode/path */
 void printChildren(TreeNode *node);
