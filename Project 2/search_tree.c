@@ -20,8 +20,6 @@ TreeNode* Treeinit() {
 
 /* Receives a pointer to a TreeNode and returns its path */
 char* pathT(TreeNode *h) {
-    /*printf("Será aqui?\n");
-    if (h == NULL) printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n");*/
     return h->value;
 }
 
@@ -39,8 +37,6 @@ char* componentT(TreeNode *h) {
 /* Receives a pointer to a TreeNode and returns an integer corresponding
  * to the instant of creation of the node */
 int instantT(TreeNode *h) {
-    /*if (h == NULL) printf("PROOOOOOBLEEEEEEEEEEEEEEEEMA\n");
-    printf("Instantt: Prestes a sair\n");*/
     return h->creation;
 }
 
@@ -108,9 +104,10 @@ TreeNode* NewTN(char *value, int instant, int size, char *component,
     x->childrenNumber = 0;
     x->creation = instant;
     x->parent = h;
+
     x->component = (char *) malloc(sizeof(char) * (strlen(component) + 1));
     strcpy(x->component, component);
-    /*x->value = value;*/
+
     x->value = (char *) malloc(sizeof(char) * (size + 3));
     strcpy(x->value, value);
 
@@ -124,17 +121,15 @@ int equal(TreeNode *h, char *value, int context) {
     if (h == NULL) {
         return res;
     }
-    /*printf("Roger Roger\n");*/
+
     if (context == PATH) {
         res = !strcmp(pathT(h), value);
     }
     else if (context == KEY && keyT(h) != NULL) {
-        /*printf("equal: Estamos no equal. O path eh '%s' e o valor eh '%s'\n", pathT(h), keyT(h));*/
         res = !strcmp(keyT(h), value);
     }
-    /*printf("Welcome to Dubai gentlemen\n");*/
+
     return res;
-    /*return !strcmp(pathT(h), value);*/
 }
 
 /* Searches the tree recursively for the first node with the key value.
@@ -181,11 +176,8 @@ TreeNode* insert(TreeNode *h, char *value, int instant, int size,
         cap = cap + cap;
         children = (TreeNode **) realloc(children, cap);
     }
-    /*printf("\ninsert: Prestes a inserir o novo elemento na lista de filhos\n");
-    printf("insert: O pai é '%s' e o filho é '%s'. Está a ser inserido em '%d'\n", h->value, new->value, h->childrenNumber);*/
-    /*children[h->childrenNumber++] = new;*/
+
     h->children[h->childrenNumber++] = new;
-    /*printf("insert: Após inserção o number_children é '%d' e no indice anterior tem-se '%s'\n\n", h->childrenNumber, children[h->childrenNumber - 1]->value);*/
     h->capacity = cap;
 
     return new;
@@ -193,16 +185,19 @@ TreeNode* insert(TreeNode *h, char *value, int instant, int size,
 
 /* Frees the memory associated with a TreeNode */
 void deleteNode(TreeNode *h) {
-    /*printf("\ndeleteNode: Vamos começar a apagar o node '%s'\n", pathT(h));*/
+    
     free(h->value);
     free(h->component);
-    free(h->key);
+
+    if (h->key != NULL) {
+        free(h->key);
+    }
+
     free(h->children);
-    /*printf("deleteNode: o seu pai tinha '%d'\n", h->parent->childrenNumber);*/
-    h->parent->childrenNumber--;
-    /*printf("deleteNode: agora tem '%d'\n", h->parent->childrenNumber);*/
+    if (instantT(h) != 0) { /* If h isn't the root directory */
+        h->parent->childrenNumber--;
+    }
     free(h);
-    /*printf("deleteNode: Foi apagado com sucesso\n\n");*/
 }
 
 /* Deletes recursively a TreeNode h and all its descendant nodes */
@@ -210,38 +205,34 @@ TreeNode* deleteT(TreeNode *h, TreeNode *root) {
     TreeNode *parent, **children = nodeChildren(h);
     int occ, i;
 
-    /*printf("deleteT: O node atual eh '%s'\n", pathT(h));*/
     occ = numberChildren(h);
-    /*printf("deleteT: Ele tem '%d' filhos\n", occ);*/
     if (occ == 0) {
-        /*printf("deleteT: Logo, vai ser apagado\n");*/
-        /*deleteNode(h);*/
-        parent = parentT(h);
-        removeChild(parent, h);
+        if (instantT(h) == 0) { /* If the root has no sub-directories */
+            deleteNode(h);
+        }
+        else {
+            parent = parentT(h);
+            removeChild(parent, h);
+        }
         return NULL;
     }
     for (i = (occ - 1); i >= 0; i--) {
-        /*printf("deleteT: estamos no filho nº '%d' com path '%s'\n", (i + 1), pathT(children[i]));*/ 
-        deleteT(children[i], root);
+        deleteT(children[i], root);    /* Delete all "descendant" directories */
         h->childrenNumber--;
-        /*printf("deleteT: De momento ainda estamos no filho nº '%d'\n", (i + 1));*/
     }
-    /*printf("deleteT: os filhos foram removidos com sucesso\n");*/
     if (h == root) { /* If we're deleting the root directory */
-        /*deleteNode(h);*/
+        deleteNode(h);
         return NULL;
     }
     parent = parentT(h);
-    /*printf("deleteT: vamos apagar o '%s'\n", pathT(h));
-    printf("deleteT: o pai do node que estamos a apagar eh '%s'\n", pathT(parent));
-    printf("deleteT: Vamos remover o node da lista de filhos do seu pai");*/
     removeChild(parent, h);
-    /*printf("deleteT: Conseguimos\n");*/
-    /*deleteNode(h);*/
 
     return parent;;
 }
 
+/* Receives a pointer to a node and another to its parent-node. Removes it
+ * from its parent's array of children nodes, freeing the memory allocated for
+ * the removed node */
 void removeChild(TreeNode *parent,TreeNode *node) {
     TreeNode **children = nodeChildren(parent);
     int occ, i;
@@ -249,17 +240,17 @@ void removeChild(TreeNode *parent,TreeNode *node) {
     occ = numberChildren(parent);
     for (i = 0; i < occ; i++) {
         if (children[i] == node) {
-            /*printf("removeChild: Queremos apagar o '%s'\n", pathT(node));
-            printf("removeChild: Vamos primeiro trocá-lo com '%s'\n", pathT(children[occ - 1]));*/
             children[i] = children[--occ]; /* Swap place with the "last child" */
             deleteNode(node);
-            /*parent->childrenNumber = occ;*/
             return;
         }
     }
 
 }
 
+/* Implementation of a quicksort algorithm to sort arrays of TreeNode*s.
+ * Depending on the context provided, as argument, sort is done either
+ * alphabetically by path or by order of creation */
 void quicksort(TreeNode **children, int left, int right, int context) {
     int i;
     
@@ -272,27 +263,24 @@ void quicksort(TreeNode **children, int left, int right, int context) {
     quicksort(children, i+1, right, context);
 }
 
+/* Implementation of quicksort's partition algorithm */
 int partition(TreeNode **children, int left, int right, int context) {
     int i = left-1;
     int j = right;
     TreeNode *temp, *v = children[right];
     
     while (i < j) {
-        /*printf("AQUI MESMO SENHOR AGENTE!\n");*/
         while (less(children[++i], v, context));
-        /*printf("SERA DEPOIS DO PRIMEIRO WHILE?\n");*/
         while (less(v, children[--j], context)) {
            if (j == left)
                 break;
         }
         if (i < j) {
-            /*printf("HEEERE I AM\n");*/
             temp = children[i];
             children[i] = children[j];
             children[j] = temp;
         }
     }
-    /*printf("TTTTTTTTTTTTTTTTTTTTTESTE\n");*/
     temp = children[i];
     children[i] = children[right];
     children[right] = temp;
@@ -300,53 +288,46 @@ int partition(TreeNode **children, int left, int right, int context) {
     return i;
 }
 
+/* Returns and integer other than zero if a was created before b or if 
+ * the path associated with a comes first, alphabetically, than the path
+ * associated with b */
 int less(TreeNode *a, TreeNode *b, int context) {
-    /*if (a == NULL || b == NULL) {
-        printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n");
-    }*/
     return (a != NULL && ((context == CREATION && instantT(a) < instantT(b)) ||
         (context == PATH && strcmp(componentT(a), componentT(b)) < 0)));
-    /*return (a != NULL && ((context == CREATION && instantT(a) < instantT(b)) ||
-            (context == PATH && strcmp(pathT(a), pathT(b)) < 0)));*/
 }
 
 
+/* Traverses the tree and prints all the path and key of all nodes
+ * with a key value */
 TreeNode* traverseTree(TreeNode *h) {
     TreeNode **children;
     int i, limit;
     char *key;
     
-    /*printf("traverseTree: A começar um node\n");*/
     if (h == NULL) {
         return NULL;
     }
     else if ((key = keyT(h)) != NULL) {
         printf("%s %s\n", pathT(h), keyT(h));
     }
-    /*printf("traverseTree: Estamos em '%s'\n", h->value);*/
+
     children = nodeChildren(h);
     limit = numberChildren(h);
-    /*printf("traverseTree: O seu número de filhos é '%d'\n\n", limit);*/
     quicksort(children, 0, limit - 1, CREATION);
 
-    /*printf("traverseTree: A entrar no loop\n");*/
     for (i = 0; i < limit; ++i) {
-        /*printf("traverseTree: Estamos no filho '%d'\n", i);
-        printf("traverseTree: O filho atual tem como path '%s'\n", children[i]->value);*/
         h = traverseTree(children[i]);
     }
 
-    /*printf("traverseTree: Nao encontrei nada mais neste nó\n\n");*/
     return NULL;
 }
 
+/* Prints the last component of all immediate children of a TreeNode/path */
 void printChildren(TreeNode *node) {
     int i, limit;
     TreeNode **children;
 
-    /*printf("Tentativa\n");*/
     limit = numberChildren(node);
-    /*printf("Erro\n");*/
     children = nodeChildren(node);
     quicksort(children, 0, limit - 1, PATH);
     for (i = 0; i < limit; ++i) {
