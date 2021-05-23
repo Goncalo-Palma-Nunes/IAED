@@ -21,7 +21,7 @@
 #define HELP "help"                                 /* Eventualmente testar "list /" */
 #define SET "set"
 #define PRINT "print"
-#define LIST "list"
+#define LIST "list"                                 /* Meter o delete a apagar a root */
 #define FIND "find"
 #define SEARCH "search"
 #define DELETE "delete"
@@ -51,6 +51,8 @@ void set(char *path, int size, TreeNode **table, TreeNode *root);
 void print(TreeNode *root);
 void find(TreeNode **table, char *instruction);
 void list(char *path, TreeNode **table);
+void search(char *key, TreeNode *root);
+void delete(TreeNode **table, TreeNode *root, char *input, char *terminal_char);
 
 int main() {
     char instruction[INSTRUCTION_SIZE];
@@ -59,13 +61,11 @@ int main() {
     
     root = createRoot(table);
     read_input(instruction, NO_SPACES, FALSE, last_char);
-    /*printf("%s\n", instruction);*/
 
     while (strcmp(instruction, QUIT)) {
 
         execute_command(instruction, table, root, last_char);
         read_input(instruction, NO_SPACES, FALSE, last_char);
-        /*printf("A instruction eh '%s'\n", instruction);*/
     }
 
     /*free(table);*/
@@ -135,7 +135,7 @@ int space(char c) {
 void execute_command(char *instruction, TreeNode **table, TreeNode *root,
                     char *terminal_char) {
     int size;
-    /*printf("A instrucao eh '%s'\n", instruction);*/
+
     if (!strcmp(instruction, HELP)) {
         help_command();
     }
@@ -144,7 +144,6 @@ void execute_command(char *instruction, TreeNode **table, TreeNode *root,
         set(instruction, size, table, root);
     }
     else if (!strcmp(instruction, PRINT)) {
-        /*printf("Execute Command: Entrou no branch do print\n");*/
         print(root);
     }
     else if (!strcmp(instruction, FIND)) {
@@ -152,6 +151,12 @@ void execute_command(char *instruction, TreeNode **table, TreeNode *root,
     }
     else if (!strcmp(instruction, LIST)) {
         list(terminal_char, table);
+    }
+    else if (!strcmp(instruction, SEARCH)) {
+        search(instruction, root);
+    }
+    else if (!strcmp(instruction, DELETE)) {
+        delete(table, root, instruction, terminal_char);
     }
 }
 
@@ -268,6 +273,7 @@ void list(char *path, TreeNode **table) {
     int length;
     char *str;
 
+    /*printf("list: o que temos em path eh '%s'\n", path);*/
     if (path[0] == '\n') {
         str = (char *) malloc(sizeof(char) * (SLASH_SIZE + 1));
         strcpy(str, SLASH);
@@ -276,14 +282,16 @@ void list(char *path, TreeNode **table) {
         length = read_input(path, NO_SPACES, FALSE, NULL);
         if (path[0] != DELIMITER) {
             str = (char *) malloc(sizeof(char) * (length + 2));
+            /*printf("list: oq temos em str eh '%s'\n", str);*/
             str[0] = DELIMITER;
+            str[1] = '\0';
             strcat(str,path);
         }
         else {
             str = path;
         }
     }
-    
+    /*printf("list: vamos procurar '%s'\n", str);*/   
     node = STsearch(str, table);
     if (node == NULL) {
         printf("not found\n");
@@ -291,4 +299,70 @@ void list(char *path, TreeNode **table) {
     }
     printChildren(node);
     if (str != path) free(str);
+}
+
+
+void search(char *key, TreeNode *root) {
+    TreeNode *node;
+
+    /*printf("Search: vamos começar a ler o input\n");*/
+    read_input(key, SPACES, FALSE, NULL);
+    /*printf("search: O input foi lido e é '%s'\n", key);*/
+    node = searchT(root, key, KEY);
+    /*printf("O input foi lido com sucesso. O path é '%s' e o seu valor é '%s'\n", pathT(node), keyT(node));*/
+
+    if (node != NULL) {
+        printf("%s\n", pathT(node));
+    }
+    else {
+        printf("not found\n");
+    }
+}
+
+void delete(TreeNode **table, TreeNode *root, char *input, char *terminal_char) {
+    TreeNode *node;
+    int length;
+    char *path;
+
+    /*printf("O terminal char eh '%s'\n", terminal_char);*/
+    if (terminal_char[0] == '\n') {
+        /*printf("Estamos a entrar no if para apagar a root\n");*/
+        deleteT(root, root);
+        return;
+    }
+    else {
+        length = read_input(input, NO_SPACES, FALSE, NULL);
+        if (input[0] != DELIMITER) {
+            path = (char *) malloc(sizeof(char) * (length + 2));
+            /*printf("list: oq temos em str eh '%s'\n", str);*/
+            path[0] = DELIMITER;
+            path[1] = '\0';
+            strcat(path,input);
+        }
+        else {
+            path = input;
+        }
+    }
+
+    /*printf("delete: Prestes a ler o input\n");*/
+    /*length = read_input(input, NO_SPACES, FALSE, NULL);*/
+    /*printf("delete: O input lido foi '%s'. Vamos procurar na hash table\n", input);*/
+    /*path = (char *) malloc(sizeof(char) * (length + 2));
+    path[0] = DELIMITER;
+    path[1] = '\0';
+    strcat(path, input);*/
+    /*printf("delete: Depois de tratado, o input eh '%s'\n", path);*/
+    node = STsearch(path, table);
+    /*printf("Encontrei na hash table\n");*/
+    STdelete(path, table);
+    /*printf("Retirei-o da hash table\n");*/
+    if (node == NULL) {
+        printf("not found\n");
+    }
+    else {
+        /*printf("O node foi encontrado e tinha como path '%s'\n", pathT(node));*/
+        deleteT(node, root);
+        /*printf("Foi apagado com sucesso\n");*/
+    }
+    /*free(path);*/
 }
